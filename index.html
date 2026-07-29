@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Povoado · Consulta Territorial — Tô no Mapa</title>
+<link rel="icon" href="assets/logo_tonomapa.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="vendor/leaflet.draw.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-inner">
+    <img src="assets/logo_tonomapa.svg" alt="Tô no Mapa" class="logo">
+    <div class="topo-titulos">
+      <h1>Povoado <span class="sep">·</span> <span class="destaque">Consulta Territorial</span></h1>
+      <p>Povos e Comunidades Tradicionais do Cerrado — dados secundários da iniciativa Tô no Mapa</p>
+    </div>
+    <div class="topo-acoes">
+      <button id="btn-guia" class="link-plataforma botao-guia">📖 Guia do usuário</button>
+      <a class="link-plataforma" href="https://dados.tonomapa.org.br/" target="_blank" rel="noopener">Plataforma Povoado ↗</a>
+    </div>
+  </div>
+</header>
+
+<div id="guia-fundo" class="guia-fundo oculta">
+  <div class="guia-caixa" role="dialog" aria-modal="true" aria-labelledby="guia-titulo">
+    <div class="guia-topo">
+      <h2 id="guia-titulo">📖 Guia do usuário</h2>
+      <button id="guia-fechar" class="guia-x" title="Fechar">×</button>
+    </div>
+    <div class="guia-corpo">
+
+      <p class="guia-intro">Esta ferramenta consulta a base da <strong>Plataforma Povoado</strong> (iniciativa Tô no Mapa):
+      <strong>6.767 comunidades tradicionais</strong> em <strong>1.435 municípios</strong> do bioma Cerrado.
+      Escolha um território, refine se quiser, clique em <strong>Consultar</strong> e receba um relatório completo — que pode ser baixado em CSV, GeoJSON e PDF.</p>
+
+      <h3><span class="num">1</span> Selecione o território — três maneiras</h3>
+      <div class="guia-modos">
+        <div class="guia-modo">
+          <h4>🔍 Filtros</h4>
+          <p>Clique nas siglas dos <strong>estados</strong> e/ou digite o nome dos <strong>municípios</strong> (a busca sugere conforme você digita; clique para adicionar, no <b>×</b> para remover). Sem nenhuma seleção, a consulta abrange <strong>todo o Cerrado</strong>.</p>
+        </div>
+        <div class="guia-modo">
+          <h4>✏️ Desenhar</h4>
+          <p>Use os botões no <strong>canto superior esquerdo do mapa</strong> para desenhar um polígono (clique ponto a ponto e feche no primeiro ponto) ou um retângulo (clique e arraste). Pode desenhar mais de uma área. Os botões de edição permitem ajustar vértices ou apagar desenhos.</p>
+        </div>
+        <div class="guia-modo">
+          <h4>📁 Arquivo</h4>
+          <p>Envie um <strong>shapefile compactado (.zip</strong> com .shp, .dbf, .shx e .prj<strong>)</strong> ou um <strong>GeoJSON</strong>. A projeção é lida do .prj e convertida automaticamente (SIRGAS 2000, UTM etc.). O contorno aparece tracejado no mapa.</p>
+        </div>
+      </div>
+      <p class="guia-obs">As três maneiras são alternativas: vale a da <strong>aba ativa</strong> no momento do clique em Consultar.</p>
+
+      <h3><span class="num">2</span> Refine (opcional)</h3>
+      <p>Em qualquer modo você pode restringir por <strong>segmento</strong> (quilombolas, geraizeiros, povos indígenas…), por <strong>trecho do nome</strong> da comunidade, ou marcar <strong>somente MATOPIBA</strong>. Deixar tudo em branco = sem restrição.</p>
+
+      <h3><span class="num">3</span> Leia e baixe o relatório</h3>
+      <p>O relatório aparece abaixo do mapa com: totais em destaque, <strong>texto-resumo</strong> pronto para citar, gráficos (segmentos, estados, municípios, fontes bibliográficas) e a <strong>lista completa de comunidades</strong> — clique nos cabeçalhos para ordenar, use a caixa "Filtrar tabela" para buscar.</p>
+      <ul class="guia-lista">
+        <li><strong>⬇ CSV das comunidades</strong> — abre no Excel; inclui as referências bibliográficas de cada comunidade.</li>
+        <li><strong>⬇ GeoJSON dos municípios</strong> — os polígonos municipais do resultado, para usar no QGIS/ArcGIS.</li>
+        <li><strong>🖨 Salvar PDF / imprimir</strong> — abre o diálogo de impressão; escolha "Salvar como PDF" como destino.</li>
+      </ul>
+
+      <h3>⚠️ Entenda o dado antes de citar</h3>
+      <ul class="guia-lista">
+        <li>As comunidades são vinculadas a <strong>municípios</strong>, sem coordenada própria. Em consultas por desenho/arquivo, o resultado traz as comunidades dos <strong>municípios interceptados</strong> — a comunidade pode estar na parte do município fora da sua área.</li>
+        <li>A base vem de <strong>fontes secundárias</strong> (revisão bibliográfica) e está em consolidação contínua — os números são um <strong>piso</strong>, não um censo.</li>
+        <li>Fonte a citar: <em>Plataforma Povoado (dados.tonomapa.org.br), iniciativa Tô no Mapa — dados extraídos em 28/07/2026.</em></li>
+      </ul>
+
+      <p class="guia-rodape">Dúvidas ou sugestões sobre a base? Use o canal <a href="https://dados.tonomapa.org.br/colabore" target="_blank" rel="noopener">Colabore</a> da Plataforma Povoado.</p>
+    </div>
+  </div>
+</div>
+
+<main class="conteudo">
+  <aside class="painel">
+    <section class="bloco">
+      <h2><span class="num">1</span> Selecione o território</h2>
+      <div class="abas" role="tablist">
+        <button class="aba ativa" data-aba="filtros" role="tab">Filtros</button>
+        <button class="aba" data-aba="desenho" role="tab">Desenhar</button>
+        <button class="aba" data-aba="arquivo" role="tab">Arquivo</button>
+      </div>
+
+      <div class="aba-conteudo" id="aba-filtros">
+        <label class="rotulo">Estados</label>
+        <div id="lista-ufs" class="chips-caixa"></div>
+        <label class="rotulo">Municípios</label>
+        <input type="text" id="busca-mun" placeholder="Digite para buscar município…" autocomplete="off">
+        <div id="sugestoes-mun" class="sugestoes"></div>
+        <div id="chips-mun" class="chips-selecionados"></div>
+        <p class="dica">Sem seleção = todo o Cerrado.</p>
+      </div>
+
+      <div class="aba-conteudo oculta" id="aba-desenho">
+        <p class="dica">Use as ferramentas no canto superior esquerdo do mapa para desenhar um polígono ou retângulo. A consulta considera os municípios interceptados pelo desenho.</p>
+        <button id="limpar-desenho" class="botao-sec">Limpar desenhos</button>
+        <p id="status-desenho" class="status"></p>
+      </div>
+
+      <div class="aba-conteudo oculta" id="aba-arquivo">
+        <p class="dica">Envie um <strong>shapefile (.zip)</strong> ou <strong>GeoJSON (.geojson/.json)</strong> com polígonos. A consulta considera os municípios interceptados.</p>
+        <input type="file" id="arquivo-input" accept=".zip,.geojson,.json">
+        <p id="status-arquivo" class="status"></p>
+      </div>
+    </section>
+
+    <section class="bloco">
+      <h2><span class="num">2</span> Refine <span class="opcional">(opcional)</span></h2>
+      <label class="rotulo">Segmentos</label>
+      <div id="lista-segmentos" class="check-caixa"></div>
+      <label class="rotulo">Nome da comunidade</label>
+      <input type="text" id="busca-nome" placeholder="Contém o texto…">
+      <label class="check-linha"><input type="checkbox" id="so-matopiba"> Somente MATOPIBA</label>
+    </section>
+
+    <div class="acoes">
+      <button id="btn-consultar" class="botao-principal">Consultar</button>
+      <button id="btn-limpar" class="botao-sec">Limpar tudo</button>
+    </div>
+  </aside>
+
+  <section class="mapa-area">
+    <div id="mapa"></div>
+    <div class="legenda no-print">
+      <strong>Comunidades por município</strong>
+      <div><i style="background:rgba(255,122,69,.18)"></i> 0</div>
+      <div><i style="background:rgba(255,122,69,.4)"></i> 1–2</div>
+      <div><i style="background:rgba(255,122,69,.6)"></i> 3–5</div>
+      <div><i style="background:rgba(255,122,69,.8)"></i> 6–10</div>
+      <div><i style="background:#FF7A45"></i> &gt;10</div>
+      <div><i class="linha" style="border-color:#2E8B57"></i> Bioma Cerrado</div>
+    </div>
+  </section>
+</main>
+
+<section id="relatorio" class="relatorio oculta">
+  <div class="rel-topo">
+    <div class="rel-cabecalho">
+      <img src="assets/logo_tonomapa.svg" alt="Tô no Mapa" class="logo-rel">
+      <div>
+        <h2>Relatório da consulta</h2>
+        <p id="rel-data" class="rel-meta"></p>
+        <p id="rel-criterios" class="rel-meta"></p>
+      </div>
+    </div>
+    <div class="rel-downloads no-print">
+      <button id="dl-csv" class="botao-principal">⬇ CSV das comunidades</button>
+      <button id="dl-geojson" class="botao-sec">⬇ GeoJSON dos municípios</button>
+      <button id="dl-pdf" class="botao-sec">🖨 Salvar PDF / imprimir</button>
+    </div>
+  </div>
+
+  <div id="rel-cards" class="cards"></div>
+
+  <div class="rel-resumo">
+    <h3>Resumo</h3>
+    <p id="rel-texto"></p>
+  </div>
+
+  <div class="graficos">
+    <div class="grafico"><h3>Comunidades por segmento</h3><div id="graf-segmentos"></div></div>
+    <div class="grafico"><h3>Comunidades por estado</h3><div id="graf-ufs"></div></div>
+    <div class="grafico"><h3>Municípios com mais comunidades</h3><div id="graf-municipios"></div></div>
+    <div class="grafico"><h3>Tipos de fonte das referências</h3><div id="graf-fontes"></div></div>
+  </div>
+
+  <div class="rel-tabela">
+    <div class="tabela-topo">
+      <h3>Lista de comunidades <span id="tab-contagem" class="opcional"></span></h3>
+      <input type="text" id="tab-filtro" class="no-print" placeholder="Filtrar tabela…">
+    </div>
+    <div class="tabela-scroll">
+      <table id="tabela-comunidades">
+        <thead><tr>
+          <th data-col="nome">Comunidade</th><th data-col="seg">Segmento</th>
+          <th data-col="mun">Município</th><th data-col="uf">UF</th>
+          <th data-col="mat">MATOPIBA</th><th data-col="nrefs">Referências</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="rel-nota">
+    <h3>Nota metodológica</h3>
+    <p>As comunidades da base Povoado são vinculadas a <strong>municípios</strong>, sem coordenada geográfica própria. Em consultas espaciais (desenho ou arquivo), o resultado corresponde às comunidades dos <strong>municípios interceptados</strong> pela área informada — a área real de cada comunidade pode estar fora do recorte desenhado. Fonte: Plataforma Povoado (dados.tonomapa.org.br), iniciativa Tô no Mapa; dados extraídos em 28/07/2026. A base é colaborativa e está em consolidação contínua.</p>
+  </div>
+</section>
+
+<footer class="rodape">
+  <div class="rodape-logos">
+    <span>Realização:</span>
+    <img src="assets/logo_ispn.svg" alt="ISPN">
+    <img src="assets/logo_cerrados.svg" alt="Instituto Cerrados">
+    <span class="parceria">Parceria:</span>
+    <img src="assets/logo_rede_cerrado.svg" alt="Rede Cerrado">
+    <img src="assets/logo_amazonia.svg" alt="Amazônia">
+  </div>
+  <p>Ferramenta de consulta construída sobre os dados públicos da Plataforma Povoado · iniciativa <a href="https://tonomapa.org.br" target="_blank" rel="noopener">Tô no Mapa</a></p>
+</footer>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/leaflet.draw.js"></script>
+<script src="vendor/shp.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
