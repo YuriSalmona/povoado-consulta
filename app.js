@@ -136,8 +136,19 @@ function traduzDraw() {
 
 function iniciaMapa() {
   mapa = L.map("mapa", { preferCanvas: true, zoomControl: true });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: "abcd", maxZoom: 18,
+  // Esri Light Gray (sem chave). O CARTO passou a exigir chave e devolve um
+  // tile-placeholder "API KEY REQUIRED" com HTTP 200. Ordem Esri: {z}/{y}/{x}.
+  const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+  const atribEsri = "Esri, HERE, Garmin, &copy; OpenStreetMap contributors";
+  L.tileLayer(ESRI + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: atribEsri, maxZoom: 18, maxNativeZoom: 16,
+  }).addTo(mapa);
+  // rótulos num pane acima dos municípios, para não ficarem cobertos pelo preenchimento
+  mapa.createPane("rotulos");
+  mapa.getPane("rotulos").style.zIndex = 450;
+  mapa.getPane("rotulos").style.pointerEvents = "none";
+  L.tileLayer(ESRI + "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
+    pane: "rotulos", maxZoom: 18, maxNativeZoom: 16,
   }).addTo(mapa);
 
   camadaCerrado = L.geoJSON(S.cerrado, { style: { color: "#2E8B57", weight: 1.6, fill: false } }).addTo(mapa);

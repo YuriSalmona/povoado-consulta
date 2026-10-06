@@ -55,7 +55,7 @@ Site 100 % estático (sem backend, sem build): HTML + CSS + JavaScript puro.
 
 - `index.html` / `styles.css` / `app.js` — aplicação;
 - `vendor/` — Leaflet 1.9.4, Leaflet.draw 1.0.4, shpjs 6.1 (auto-hospedados);
-- basemap: tiles raster CARTO Positron;
+- basemap: Esri Light Gray Canvas (base + rótulos), sem chave de API — o CARTO passou a exigir chave em 2026;
 - motor espacial próprio em `app.js` (bbox + ray casting + interseção de segmentos),
   ~50 ms para varrer os 1.435 municípios;
 - identidade visual Tô no Mapa: laranja `#F76707`/`#E85F00`/`#FF7A45`,
